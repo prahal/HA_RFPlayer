@@ -359,22 +359,29 @@ def infoType_11_decode(infos:list,allowEmptyID:bool=False) -> list:
 def infoType_15_decode(infos:list,allowEmptyID:bool=False) -> list:
     if infotypes_debug: log.debug("Decode InfoType 15 : %d",infos)
     fields_found = {}
-    
+   
     fields_found["subType"]=infos.get("subTypeMeaning")
     if fields_found["subType"] == None or fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["qualifier"]=infos["qualifier"]
 
     fields_found["info"]=infos.get("infoMeaning")
 
-    elements={'add0':'','add1':''}
-    for measure,value in infos.items():
-        if measure in elements:
-            fields_found[measure] = value
-            if elements[measure] != '':
-                fields_found[measure+'_unit']= elements[measure]
+    if fields_found["subType"] == "SET_TEMPERATURE":
+        elements={'add0':'°C','add1':'%'}
+        for measure,value in infos.items():
+            if measure in elements:
+                fields_found[measure] = int(value)*0.01 #MODIFIER car remonte en centième (mis en multiplier pour l'erreur si 0)
+                if elements[measure] != '':
+                    fields_found[measure+'_unit']= elements[measure]
+    else :
+        elements={'add0':'','add1':''}
+        for measure,value in infos.items():
+            if measure in elements:
+                fields_found[measure] = value
+                if elements[measure] != '':
+                    fields_found[measure+'_unit']= elements[measure]
 
     fields_found["id"]=infos["id"]
     
     if fields_found["id"]!="0" or allowEmptyID:
         return fields_found
-

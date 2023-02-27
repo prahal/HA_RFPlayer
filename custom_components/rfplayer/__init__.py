@@ -48,9 +48,11 @@ from .const import (
     PLATFORMS,
     RFPLAYER_PROTOCOL,
     SERVICE_SEND_COMMAND,
+    SERVICE_TEST_FRAME,
     SIGNAL_AVAILABILITY,
     SIGNAL_EVENT,
     SIGNAL_HANDLE_EVENT,
+    TEST_FRAME,
 )
 from .rflib.rfpprotocol import create_rfplayer_connection
 
@@ -65,6 +67,12 @@ SEND_COMMAND_SCHEMA = vol.Schema(
         vol.Optional(CONF_DEVICE_ID): cv.string,
         vol.Required(CONF_AUTOMATIC_ADD, default=False): cv.boolean,
         vol.Optional(CONF_ENTITY_TYPE): cv.string,
+    }
+)
+
+TEST_FRAME_SCHEMA = vol.Schema(
+    {
+        vol.Required(TEST_FRAME): cv.string,
     }
 )
 
@@ -130,9 +138,20 @@ async def async_setup_entry(hass, entry):
             
             
             _add_device_to_base_config(device, event_id)
+    
+    async def async_test_frame(call):
+        """Test Rfplayer frame."""
+        #_LOGGER.debug("Rfplayer test frame for %s", str(call.data.get('frame')))
+        hass.data[DOMAIN][RFPLAYER_PROTOCOL].handle_raw_packet(
+            call.data['frame']
+        )
 
     hass.services.async_register(
         DOMAIN, SERVICE_SEND_COMMAND, async_send_command, schema=SEND_COMMAND_SCHEMA
+    )
+
+    hass.services.async_register(
+        DOMAIN, SERVICE_TEST_FRAME, async_test_frame, schema=TEST_FRAME_SCHEMA
     )
 
     @callback
@@ -312,6 +331,12 @@ class RfplayerDevice(RestoreEntity):
             protocol=self._protocol,
             device_id=self._device_id,
             device_address=self._device_address,
+        )
+
+    async def async_test_frame(self, frame, *args):
+        rfplayer = self.hass.data[DOMAIN][RFPLAYER_PROTOCOL]
+        await rfplayer.han(
+            frame=frame,
         )
 
     @callback

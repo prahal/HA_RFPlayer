@@ -32,6 +32,7 @@ PACKET_FIELDS = {
     "spd":"speed",
     "dir":"direction",
     "uv":"uv",
+    "nrj":"energy", # Retour energy de l'OWL
     "pow":"Power",
     "P1":"P1",
     "P2":"P2",
@@ -45,9 +46,16 @@ PACKET_FIELDS = {
     "d1":"d1",
     "d2":"d2",
     "d3":"d3",
-    "add0":"add0",
-    "add1":"add1",
-    "inf":"info",
+    #Pour EDISIO 868
+    "temperature":"add0",
+    "hygro":"add1",
+    "info":"info",
+    "type":'infoMeaning',
+    "confort":"99",
+    "eco":"98",
+    "HG":"97",
+    "ON":"01",
+    "OFF":"02",
 }
 
 RTS_ELEM = {
@@ -163,6 +171,7 @@ def encode_packet(packet: PacketType) -> str:
 
 def serialize_packet_id(packet: PacketType) -> str:
     """Serialize packet identifiers into one reversible string."""
+    #log.debug("Serialize packet %s", str(packet))
     return PACKET_ID_SEP.join(
         filter(
             None,

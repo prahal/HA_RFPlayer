@@ -39,6 +39,7 @@ RFPLAYER_GROUP_COMMANDS = ["allon", "alloff"]
 
 SERVICE_SEND_COMMAND = "send_command"
 SERVICE_DELETE = "delete"
+SERVICE_TEST_FRAME = "test_frame"
 
 SIGNAL_AVAILABILITY = "rfplayer_device_available"
 SIGNAL_HANDLE_EVENT = "rfplayer_handle_event_{}"
@@ -55,3 +56,5 @@ ENTITY_TYPE_SWITCH = "switch"
 ENTITY_TYPE_COVER = "cover"
 ENTITY_TYPE_SENSOR = "sensor"
 ENTITY_TYPE_NUMBER = "number"
+
+TEST_FRAME = "frame"
