@@ -14,6 +14,7 @@ PACKET_ID_SEP = "_"
 
 PACKET_FIELDS = {
     "bat": "battery_level",
+    "bat": "battery",
     "cmd": "command",
     "dtc": "detector",
     "sta": "status",
@@ -46,9 +47,12 @@ PACKET_FIELDS = {
     "d1":"d1",
     "d2":"d2",
     "d3":"d3",
+    #"typ":"subType",
+    "dbg":"debug",
     #Pour EDISIO 868
-    "temperature":"add0",
-    "hygro":"add1",
+    "mod":"model",
+    #"temperature":"add0",
+    #"hygro":"add1",
     "info":"info",
     "type":'infoMeaning',
     "confort":"99",
@@ -56,6 +60,7 @@ PACKET_FIELDS = {
     "HG":"97",
     "ON":"01",
     "OFF":"02",
+    "dim":"dim",
 }
 
 RTS_ELEM = {

@@ -364,8 +364,97 @@ def infoType_15_decode(infos:list,allowEmptyID:bool=False) -> list:
     if fields_found["subType"] == None or fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["qualifier"]=infos["qualifier"]
 
-    fields_found["info"]=infos.get("infoMeaning")
+    #fields_found["info"]=infos.get("infoMeaning")
+    Fields_Infos=infos.get("infoMeaning").split(",")
+    fields_found["model"]=Fields_Infos[0]
+    fields_found["battery"]=Fields_Infos[1]
+    fields_found["battery_unit"]="V"
 
+
+
+    match fields_found["subType"]:
+        case "NULL" :
+            fields_found["command"]=fields_found["subType"]    
+        case "ON" :
+            fields_found["command"]=fields_found["subType"]
+        case "OFF" :
+            fields_found["command"]=fields_found["subType"]
+        case "TOGGLE" :
+            fields_found["command"]=fields_found["subType"]
+        case "DIM" :
+            fields_found["command"]=fields_found["subType"]
+            fields_found["dim"]=infos["add0"]
+            fields_found["dim_unit"]=infos["add0"]
+        case "DIM-UP" :
+            fields_found["command"]=fields_found["subType"]
+        case "DIM-DOWN" :
+            fields_found["command"]=fields_found["subType"]
+        case "DIM-A" :
+            fields_found["command"]=fields_found["subType"]
+        case "DIM-STOP" :
+            fields_found["command"]=fields_found["subType"]
+        case "SHUTTER_OPEN" :
+            fields_found["command"]=fields_found["subType"]
+        case "SHUTTER_CLOSE" :
+            fields_found["command"]=fields_found["subType"]
+        case "SHUTTER_STOP" :
+            fields_found["command"]=fields_found["subType"]
+        case "RGB" :
+            fields_found["command"]=fields_found["subType"]
+            fields_found["debug"]=infos
+        case "RGB_C" :
+            fields_found["command"]=fields_found["subType"]
+        case "RGB_PLUS" :
+            fields_found["command"]=fields_found["subType"]
+        case "OPEN_SLOW" :
+            fields_found["command"]=fields_found["subType"]
+        case "SET_SHORT" :
+            fields_found["command"]=fields_found["subType"]
+        case "SET_5S" :
+            fields_found["command"]=fields_found["subType"]
+        case "SET_10S" :
+            fields_found["command"]=fields_found["subType"]
+        case "STUDY" :
+            fields_found["command"]=fields_found["subType"]
+        case "DEL_BUTTON" :
+            fields_found["command"]=fields_found["subType"]
+        case "DEL_ALL" :
+            fields_found["command"]=fields_found["subType"]
+        case "SET_TEMPERATURE" :
+            fields_found["command"]=fields_found["subType"]
+            fields_found["temperature"]=int(infos['add0'])*0.01
+            fields_found["temperature_unit"]="°C"
+            fields_found["hygrometry"]=int(infos['add1'])*0.01
+            fields_found["hygrometry_unit"]="%"
+            #fields_found["debug"]=infos
+        case "DOOR_OPEN" :
+            fields_found["command"]=fields_found["subType"]
+        case "BROADCAST_QUERY" :
+            fields_found["command"]=fields_found["subType"]
+        case "QUERY_STATUS" :
+            fields_found["command"]=fields_found["subType"]
+        case "REPORT_STATUS" :
+            fields_found["command"]=fields_found["subType"]
+            fields_found["debug"]=infos
+        case "READ_CUSTOM" :
+            fields_found["command"]=fields_found["subType"]
+        case "SAVE_CUSTOM" :
+            fields_found["command"]=fields_found["subType"]
+            fields_found["debug"]=infos
+        case "REPORT_CUSTOM" :
+            fields_found["command"]=fields_found["subType"]
+            fields_found["debug"]=infos
+        case "SET_SHORT_DIMMER" :
+            fields_found["command"]=fields_found["subType"]
+            fields_found["debug"]=infos
+        case "SET_SHORT_SENSOR" :
+            fields_found["command"]=fields_found["subType"]
+            fields_found["debug"]=infos
+        case _ :
+            fields_found["command"]=fields_found["subType"]
+            fields_found["debug"]=infos
+
+    """
     if fields_found["subType"] == "SET_TEMPERATURE":
         elements={'add0':'°C','add1':'%'}
         for measure,value in infos.items():
@@ -380,7 +469,7 @@ def infoType_15_decode(infos:list,allowEmptyID:bool=False) -> list:
                 fields_found[measure] = value
                 if elements[measure] != '':
                     fields_found[measure+'_unit']= elements[measure]
-
+    """
     fields_found["id"]=infos["id"]
     
     if fields_found["id"]!="0" or allowEmptyID:
