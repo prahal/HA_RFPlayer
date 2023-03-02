@@ -367,9 +367,9 @@ def infoType_15_decode(infos:list,allowEmptyID:bool=False) -> list:
     #fields_found["info"]=infos.get("infoMeaning")
     Fields_Infos=infos.get("infoMeaning").split(",")
     fields_found["model"]=Fields_Infos[0]
-    fields_found["battery"]=Fields_Infos[1]
+    fields_found["battery"]=Fields_Infos[1].split("V")[0]
     fields_found["battery_unit"]="V"
-
+    fields_found["button"]=infos["qualifier"]
 
 
     match fields_found["subType"]:
@@ -450,26 +450,28 @@ def infoType_15_decode(infos:list,allowEmptyID:bool=False) -> list:
         case "SET_SHORT_SENSOR" :
             fields_found["command"]=fields_found["subType"]
             fields_found["debug"]=infos
+
+        #Traduction complémentaire : 0x01 ON , 0x02 OFF , 0x61(97) HG, 0x62(98) ECO , 0x63(99) CONFORT
+        case "1" :
+            fields_found["subType"]="ON"
+            fields_found["command"]=fields_found["subType"]
+        case "2" :
+            fields_found["subType"]="OFF"
+            fields_found["command"]=fields_found["subType"]
+        case "97" :
+            fields_found["subType"]="HG"
+            fields_found["command"]=fields_found["subType"]
+        case "98" :
+            fields_found["subType"]="ECO"
+            fields_found["command"]=fields_found["subType"]
+        case "99" :
+            fields_found["subType"]="CONFORT"
+            fields_found["command"]=fields_found["subType"]
+        
         case _ :
             fields_found["command"]=fields_found["subType"]
             fields_found["debug"]=infos
 
-    """
-    if fields_found["subType"] == "SET_TEMPERATURE":
-        elements={'add0':'°C','add1':'%'}
-        for measure,value in infos.items():
-            if measure in elements:
-                fields_found[measure] = int(value)*0.01 #MODIFIER car remonte en centième (mis en multiplier pour l'erreur si 0)
-                if elements[measure] != '':
-                    fields_found[measure+'_unit']= elements[measure]
-    else :
-        elements={'add0':'','add1':''}
-        for measure,value in infos.items():
-            if measure in elements:
-                fields_found[measure] = value
-                if elements[measure] != '':
-                    fields_found[measure+'_unit']= elements[measure]
-    """
     fields_found["id"]=infos["id"]
     
     if fields_found["id"]!="0" or allowEmptyID:

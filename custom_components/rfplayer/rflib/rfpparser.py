@@ -30,6 +30,7 @@ PACKET_FIELDS = {
     "bt2":"button2",
     "bt3":"button3",
     "bt4":"button4",
+    "btn":"button",
     "spd":"speed",
     "dir":"direction",
     "uv":"uv",
@@ -47,7 +48,7 @@ PACKET_FIELDS = {
     "d1":"d1",
     "d2":"d2",
     "d3":"d3",
-    #"typ":"subType",
+    "typ":"subType",
     "dbg":"debug",
     #Pour EDISIO 868
     "mod":"model",
@@ -61,6 +62,7 @@ PACKET_FIELDS = {
     "ON":"01",
     "OFF":"02",
     "dim":"dim",
+    
 }
 
 RTS_ELEM = {
