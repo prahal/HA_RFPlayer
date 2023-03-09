@@ -290,7 +290,7 @@ def infoType_9_decode(infos:list,allowEmptyID:bool=False) -> list:
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["id_channel"]=infos["id_channel"]
     fields_found["qualifier"]=infos["qualifier"]
-    fields_found["battery"]=(1-int(infos["lowBatt"]))*100
+    fields_found["battery_level"]=(1-int(infos["lowBatt"]))*100
     fields_found["battery_level_unit"]="%"
     
     match int(infos["qualifier"])>>4:
