@@ -107,7 +107,7 @@ def VISONIC_decode(data:list,message:list,node) -> list:
     
     #log.warn('Shadow Message, no id found !')
 
-#X10 : Infotypes : 0,1
+#BLISS : Infotypes : 1
 def BLYSS_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode BLYSS")
     if protocols_debug: log.debug("data:%s",str(data))
@@ -129,6 +129,7 @@ def BLYSS_decode(data:list,message:list,node) -> list:
     
     #log.warn('Shadow Message, no id found !')
 
+#CHACON : Infotypes : 1
 def CHACON_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode CHACON")
     if protocols_debug: log.debug("data:%s",str(data))
@@ -150,6 +151,7 @@ def CHACON_decode(data:list,message:list,node) -> list:
     
     #log.warn('Shadow Message, no id found !')
 
+#OREGON : Infotypes : 4,5,6,7,9
 def OREGON_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode OREGON")
     if protocols_debug: log.debug("data:%s",str(data))
@@ -171,6 +173,7 @@ def OREGON_decode(data:list,message:list,node) -> list:
     
     #log.warn('Shadow Message, no id found !')
 
+#DOMIA : Infotypes : 0
 def DOMIA_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode DOMIA")
     if protocols_debug: log.debug("data:%s",str(data))
@@ -192,6 +195,7 @@ def DOMIA_decode(data:list,message:list,node) -> list:
     
     #log.warn('Shadow Message, no id found !')
 
+#OWL : Infotypes : 8
 def OWL_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode OWL")
     if protocols_debug: log.debug("data:%s",str(data))
@@ -213,6 +217,7 @@ def OWL_decode(data:list,message:list,node) -> list:
     
     #log.warn('Shadow Message, no id found !')
 
+#X2D : Infotypes : 10,11
 def X2D_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode X2D")
     if protocols_debug: log.debug("data:%s",str(data))
@@ -235,6 +240,7 @@ def X2D_decode(data:list,message:list,node) -> list:
     
     #log.warn('Shadow Message, no id found !')
 
+#RTS : Infotypes : 3
 def RTS_decode(data:list,message:list,node) -> list:
     """
     RTS uses Infotypes 3
@@ -266,6 +272,7 @@ def RTS_decode(data:list,message:list,node) -> list:
     
     #log.warn('Shadow Message, no address found !')
 
+#KD101 : Infotypes : 1
 def KD101_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode KD101")
     if protocols_debug: log.debug("data:%s",str(data))
@@ -287,6 +294,7 @@ def KD101_decode(data:list,message:list,node) -> list:
     
     #log.warn('Shadow Message, no id found !')
 
+#PARROT : Infotypes : 0
 def PARROT_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode PARROT")
     if protocols_debug: log.debug("data:%s",str(data))
@@ -308,6 +316,7 @@ def PARROT_decode(data:list,message:list,node) -> list:
     
     #log.warn('Shadow Message, no id found !')
 
+#TIC : Infotypes : 13
 def TIC_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode TIC")
     if protocols_debug: log.debug("data:%s",str(data))
@@ -329,6 +338,7 @@ def TIC_decode(data:list,message:list,node) -> list:
     
     #log.warn('Shadow Message, no id found !')
 
+#FS20 : Infotypes : 1,14
 def FS20_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode FS20")
     if protocols_debug: log.debug("data:%s",str(data))
@@ -350,6 +360,7 @@ def FS20_decode(data:list,message:list,node) -> list:
     
     #log.warn('Shadow Message, no id found !')
 
+#JAMMING : Infotypes : 1
 def JAMMING_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode JAMMING")
     if protocols_debug: log.debug("data:%s",str(data))
@@ -373,6 +384,7 @@ def JAMMING_decode(data:list,message:list,node) -> list:
     
     #log.warn('Shadow Message, no id found !')
 
+#EDISIO : Infotypes : 15
 def EDISIO_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode EDISIO")
     if protocols_debug: log.debug("data:%s",str(data))
