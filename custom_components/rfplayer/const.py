@@ -77,6 +77,7 @@ EVENT_KEY_PLATFORM = "platform"
 RFPLAYER_GROUP_COMMANDS = ["allon", "alloff"]
 
 SERVICE_SEND_COMMAND = "send_command"
+SERVICE_SEND_RAW_COMMAND = "send_raw_command"
 SERVICE_DELETE = "delete"
 SERVICE_TEST_FRAME = "test_frame"
 

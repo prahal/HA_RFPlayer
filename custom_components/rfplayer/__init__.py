@@ -53,6 +53,7 @@ from .const import *
     PLATFORMS,
     RFPLAYER_PROTOCOL,
     SERVICE_SEND_COMMAND,
+    SERVICE_SEND_RAW_COMMAND
     SERVICE_TEST_FRAME,
     SIGNAL_AVAILABILITY,
     SIGNAL_EVENT,
@@ -74,6 +75,12 @@ SEND_COMMAND_SCHEMA = vol.Schema(
         vol.Optional(CONF_DEVICE_ID): cv.string,
         vol.Required(CONF_AUTOMATIC_ADD, default=False): cv.boolean,
         vol.Optional(CONF_ENTITY_TYPE): cv.string,
+    }
+)
+
+SEND_RAW_COMMAND_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_COMMAND): cv.string,
     }
 )
 
@@ -151,6 +158,14 @@ async def async_setup_entry(hass, entry):
             
             
             _add_device_to_base_config(device, event_id)
+
+    async def async_send_raw_command(call):
+        """Send Rfplayer command."""
+        _LOGGER.debug("Rfplayer send command for %s", str(call.data))
+        if not await hass.data[DOMAIN][RFPLAYER_PROTOCOL].send_raw_command_ack(
+            call.data[CONF_COMMAND],
+        ):
+            _LOGGER.error("Failed Rfplayer command")
     
     async def async_test_frame(call):
         """Test Rfplayer frame."""
@@ -161,6 +176,10 @@ async def async_setup_entry(hass, entry):
 
     hass.services.async_register(
         DOMAIN, SERVICE_SEND_COMMAND, async_send_command, schema=SEND_COMMAND_SCHEMA
+    )
+
+    hass.services.async_register(
+        DOMAIN, SERVICE_SEND_RAW_COMMAND, async_send_raw_command, schema=SEND_RAW_COMMAND_SCHEMA
     )
 
     hass.services.async_register(
@@ -195,7 +214,8 @@ async def async_setup_entry(hass, entry):
 
         if entity_id:
             # Propagate event to every entity matching the device id
-            #_LOGGER.debug("passing event to %s", entity_id)
+            _LOGGER.debug("passing event to %s", entity_id)
+            _LOGGER.debug("Register available : %s",str(hass.data[DOMAIN][DATA_DEVICE_REGISTER]))
             async_dispatcher_send(
                 hass, SIGNAL_HANDLE_EVENT.format(entity_id), event)
         else:
@@ -206,12 +226,12 @@ async def async_setup_entry(hass, entry):
                 _LOGGER.debug("event_type: %s",str(event_type))
                 _LOGGER.debug("event_id: %s",str(event_id))
                 _LOGGER.debug("event: %s",str(event))
-                _LOGGER.debug("device_id not known, adding new device")
                 _LOGGER.debug(str(hass.data[DOMAIN][DATA_DEVICE_REGISTER]))
                 _LOGGER.debug(str(hass.data[DOMAIN][DATA_DEVICE_REGISTER][event_type]))
                 
                 hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id] = event
                 _add_device_to_base_config(event, event_id)
+                _LOGGER.debug("calling: %s","hass.data["+DOMAIN+"]["+DATA_DEVICE_REGISTER+"]["+event_type+"]")
                 hass.async_create_task(
                     hass.data[DOMAIN][DATA_DEVICE_REGISTER][event_type](event)
                 )
@@ -268,6 +288,7 @@ async def async_setup_entry(hass, entry):
             disconnect_callback=reconnect,
             loop=hass.loop,
             options={'START_COMMANDS':[
+                            "FORMAT "+str(options.get(CONF_FORMAT,"JSON")),
                             ReceiverCommand,
                             RepeaterCommand,
                             TraceCommand,
@@ -275,7 +296,6 @@ async def async_setup_entry(hass, entry):
                             "SENSITIVITY H "+str(options.get(CONF_SENSITIVITY_H,0)),
                             "SELECTIVITY L "+str(options.get(CONF_SELECTIVITY_L,0)),
                             "SELECTIVITY H "+str(options.get(CONF_SELECTIVITY_H,0)),
-                            "RFLINK "+str(int(options.get(CONF_RFLINK,True) == True)),
                             "RFLINKTRIGGER L "+str(options.get(CONF_RFLINKTRIGGER_L,0)),
                             "RFLINKTRIGGER H "+str(options.get(CONF_RFLINKTRIGGER_H,0)),
                             "DSPTRIGGER L "+str(options.get(CONF_DSPTRIGGER_L,0)),
@@ -284,8 +304,10 @@ async def async_setup_entry(hass, entry):
                             "FREQ L "+str(options.get(CONF_FREQ_L,0)),
                             "FREQ H "+str(options.get(CONF_FREQ_H,0)),
                             "LEDACTIVITY "+str(int(options.get(CONF_LEDACTIVITY,True) == True)),
-                            "FORMAT "+str(options.get(CONF_FORMAT,"JSON")),
-                            "STATUS"
+                            "RFLINK "+str(int(options.get(CONF_RFLINK,True) == True)),
+                            "RFLINK H "+str(int(options.get(CONF_RFLINK,True) == True)),
+                            "RFLINK L "+str(int(options.get(CONF_RFLINK,True) == True)),
+                            "STATUS JSON"
                         ]
             },
         )
@@ -344,9 +366,26 @@ async def async_setup_entry(hass, entry):
 
 async def async_unload_entry(hass, entry):
     """Unload a config entry."""
+    _LOGGER.debug("Unloading %s",str(entry))
+    await hass.config_entries.async_unload_platforms(entry, "sensor")
+    return True
+    
 
 async def async_remove_entry(hass, entry) -> None:
     """Handle removal of an entry."""
+    _LOGGER.debug("Removing %s",str(entry))
+    try:
+        await hass.config_entries.async_forward_entry_unload(entry, "sensor")
+        _LOGGER.info("Successfully removed sensor from the integration")
+    except ValueError:
+        pass
+
+async def async_remove_config_entry_device(
+    hass, config_entry, device_entry
+) -> bool:
+    return True
+    """Remove a config entry from a device."""
+    
 
 class RfplayerDevice(RestoreEntity):
     """Representation of a Rfplayer device.
@@ -432,7 +471,7 @@ class RfplayerDevice(RestoreEntity):
     def device_info(self) -> DeviceInfo:
         """Return device registry information for this entity."""
         
-        _LOGGER.debug("-------Device Info-------:"+str(self.unique_id))
+        #_LOGGER.debug("-------Device Info-------:"+str(self.unique_id))
         #_LOGGER.debug(self.unique_id)
         #_LOGGER.debug(self.hass.data[DOMAIN])
         """

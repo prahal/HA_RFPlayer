@@ -69,6 +69,17 @@ send_command:
               - "switch"
           mode: dropdown
 
+send_raw_command:
+  description: Send device raw command through RFPlayer.
+  fields:
+    command:
+      name: Command
+      description: The command to be sent.
+      required: true
+      example: "ZIA++STATUS"
+      selector:
+        text:
+
 set_device_address:
   description: Set device adress for RFPlayer entity.
   fields:

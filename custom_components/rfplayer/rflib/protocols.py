@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, Generator, cast
 import json
 
 #Debogage des protocoles
-protocols_debug=False
+protocols_debug=True
 
 PacketType = Dict[str, Any]
 
@@ -62,6 +62,85 @@ def header_decode(header:dict):
         headers_found[element]= header.get(element)
     headers_found['protocol']=header.get('protocolMeaning')
     return headers_found
+
+#WELCOME
+def WELCOME_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode Welcome")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoded_items["protocol"] = "SYSINFO"
+    decoded_items["platform"] = "sensor"
+    decoded_items["id"] = "SysInfo"
+    SysInfos=str(message).split('(')[1].split(')')[0]
+    decoded_items["debug"] = SysInfos
+
+    return decoded_items
+
+#RECEIVED
+def RECEIVED_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode Received")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoded_items["protocol"] = "SYSINFO"
+    decoded_items["platform"] = "sensor"
+    decoded_items["id"] = "Receivers"
+    SysInfos=str(message).split(':')[1]
+    decoded_items["debug"] = SysInfos
+
+    return decoded_items
+
+#REPEATED
+def REPEATED_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode Repeated")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoded_items["protocol"] = "SYSINFO"
+    decoded_items["platform"] = "sensor"
+    decoded_items["id"] = "Repeaters"
+    SysInfos=str(message).split(':')[1]
+    decoded_items["debug"] = SysInfos
+
+    return decoded_items
+
+#systemStatus
+def systemStatus_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode systemStatus")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoded_items["elements"]={}
+    Infos=message["systemStatus"]["info"]
+    for info in Infos :
+        if info.get("n"):
+            name=info.get("n")
+            decoded_items["elements"][name]={
+                "id":name,
+                "protocol":"SYSSTATUS",
+                "platform":"sensor",
+                "sensor":info.get("v")
+                
+            }
+            if info.get("unit",None) != None :
+                decoded_items["elements"][name]["sensor"+"_unit"]=info.get("unit")
+        
+        subelements={"transmitter":["available"],"receiver":["available","enabled"],"repeater":["available","enabled"]}
+        for subelement,details in subelements.items():
+            if info.get(subelement):
+                for detail in details:
+                    if info.get(subelement).get(detail):
+                        name=subelement+"-"+detail
+                        decoded_items["elements"][name]={
+                            "id":name,
+                            "protocol":"SYSSTATUS",
+                            "platform":"sensor",
+                            "sensor":info.get(subelement).get(detail).get("p")
+                        }
+
+
+    return decoded_items
 
 #X10 : Infotypes : 0,1
 def X10_decode(data:list,message:list,node) -> list:

@@ -137,31 +137,49 @@ def valid_packet(packet: str) -> bool:
 def decode_packet(packet: str) -> list:
     """Decode packet."""
     packets_found = []
+
     data = cast(PacketType, {"node": PacketHeader.gateway.name})
 
-    # Welcome messages directly send
-    #TODO : Manage ZIA-- frames
-    if packet.startswith("ZIA--"):
-        data["message"] = packet.replace("ZIA--", "")
-        log.debug("Packet : %s",packet)
-        return [data]
+    log.debug("Packet : %s",packet)
+    match packet[:5]:
+        case "ZIA--":
+            # Welcome messages and status directly send
+            #TODO : Manage ZIA-- frames
+            frame=packet.replace("ZIA--", "")
+            if frame.startswith('Welcome'):
+                protocol="WELCOME"
+                message=frame
+                packets_found.append(globals()["_".join([protocol,"decode"])](data,message,PacketHeader.gateway.name))
+            elif frame.startswith('RECEIVED'):
+                protocol="RECEIVED"
+                message=frame
+                packets_found.append(globals()["_".join([protocol,"decode"])](data,message,PacketHeader.gateway.name))
+            elif frame.startswith('REPEATED'):
+                protocol="REPEATED"
+                message=frame
+                packets_found.append(globals()["_".join([protocol,"decode"])](data,message,PacketHeader.gateway.name))
+            else:
+                message = json.loads(frame)
+                for protocol in message:
+                    packets_found.append(globals()["_".join([protocol,"decode"])](data,message,PacketHeader.gateway.name))
 
-    # Protocols
-    message = json.loads(packet.replace("ZIA33", ""))["frame"]
-    data["protocol"] = message["header"]["protocolMeaning"]
-    #log.debug("Packet : %s",packet)
+            
+            #packets_found.append(globals()["_".join([data["protocol"],"decode"])](data,message,PacketHeader.gateway.name))
+            #return [data]
+        
+        case "ZIA33":
+            # Protocols
+            message = json.loads(packet.replace("ZIA33", ""))["frame"]
+            data["protocol"] = message["header"]["protocolMeaning"]
+            #log.debug("Packet : %s",packet)
 
-    NewMotor=False
-
-
-    try:
-        packets_found.append(globals()["_".join([data["protocol"],"decode"])](data,message,PacketHeader.gateway.name))
-        NewMotor=True
-    except Exception as e:
-        log.error("Protocol %s not implemented : %s", str(data["protocol"]),str(e))
-        log.debug("Trace : %s",traceback.format_exc())
-        log.debug("Message : %s", str(message))
-
+            try:
+                packets_found.append(globals()["_".join([data["protocol"],"decode"])](data,message,PacketHeader.gateway.name))
+            except Exception as e:
+                log.error("Protocol %s not implemented : %s", str(data["protocol"]),str(e))
+                log.debug("Trace : %s",traceback.format_exc())
+                log.debug("Message : %s", str(message))
+        
     #if packets_found==[None]:
     #    log.error("No packets found in %s", str(message))
     #log.debug("Packets Found : %s", str(packets_found))
@@ -227,7 +245,7 @@ def deserialize_packet_id(packet_id: str) -> Dict[str, str]:
 
 def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
     platform=None
-    #log.debug("packet:%s", str(packet))
+    log.debug("packet events:%s", str(packet))
     """Handle packet events."""
     field_abbrev = {
         v: k
@@ -265,5 +283,24 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
             "platform": platform,
             "protocol": protocol
         }
+
+    if(packet.get('elements')):
+        for sensor, value in packet.get('elements').items():
+            log.debug("packet_events, sensor:%s,value:%s", sensor, value)
+            unit = packet.get("sensor" + "_unit", None)
+            
+            if forceid==None:
+                id=packet_id + value.get("protocol","unknown") + PACKET_ID_SEP + sensor
+            else :
+                id=forceid
+                
+            yield {
+                "id": id,
+                "sensor": "sensor",
+                "value":value.get("sensor","unknown"),
+                "unit": value.get("sensor_unit",""),
+                "platform": value.get("platform","unknown"),
+                "protocol": value.get("protocol","unknown")
+            }
 
 

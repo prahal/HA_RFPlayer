@@ -5,7 +5,7 @@ from homeassistant.const import (
     CONF_DEVICES,CONF_DEVICES)
 from homeassistant.helpers.entity import EntityCategory
 
-from . import RfplayerDevice
+from . import DATA_DEVICE_REGISTER, EVENT_KEY_SENSOR, RfplayerDevice
 from .const import (
     CONF_AUTOMATIC_ADD,
     DATA_DEVICE_REGISTER,
@@ -30,10 +30,26 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     config = entry.data
     options = entry.options
+    #_LOGGER.debug("config : %s",str(config))
+    #_LOGGER.debug("config : %s",str(options))
 
     # add jamming entity
     #async_add_entities([RfplayerJammingSensor()])
 
+    async def add_new_device(device_info):
+        _LOGGER.debug("Add sensor entity %s", device_info)
+        """Check if device is known, otherwise create device entity."""
+        device_id = device_info[EVENT_KEY_ID]
+        # create entity
+        device = RfplayerSensor(
+            protocol=device_id.split("_")[0],
+            device_id=device_id.split("_")[1],
+            unit_of_measurement=device_info[EVENT_KEY_UNIT],
+            initial_event=device_info,
+        )
+        
+        async_add_entities([device])
+        
     if CONF_DEVICES in config:
         items_to_delete=[]
         for device_id, device_info in config[CONF_DEVICES].items():
@@ -46,21 +62,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
         for item in items_to_delete:
             config[CONF_DEVICES].pop(item)
-
-    async def add_new_device(device_info):
-        """Check if device is known, otherwise create device entity."""
-        device_id = device_info[EVENT_KEY_ID]
-        # create entity
-        device = RfplayerSensor(
-            protocol=device_id.split("_")[0],
-            device_id=device_id.split("_")[1],
-            unit_of_measurement=device_info[EVENT_KEY_UNIT],
-            initial_event=device_info,
-        )
-        _LOGGER.debug("Add sensor entity %s", device_info)
-        async_add_entities([device])
-        
-
     
                 
 
@@ -100,7 +101,33 @@ class RfplayerSensor(RfplayerDevice):
             ] = self.entity_id
 
     async def async_will_remove_from_hass(self):
-        await super().async_will_remove_from_hass()
+        #await super().async_will_remove_from_hass()
+        async def async_will_remove_from_hass(self):
+            """Clean up after entity before removal."""
+            _LOGGER.info("async_will_remove_from_hass ")
+            self._data.clear_session()
+
+    async def async_unload_entry(hass, entry):
+        """Unload a config entry."""
+        _LOGGER.debug("Unloading %s",str(entry))
+        await hass.config_entries.async_unload_platforms(entry, "sensor")
+        return True
+        
+
+    async def async_remove_entry(hass, entry) -> None:
+        """Handle removal of an entry."""
+        _LOGGER.debug("Removing %s",str(entry))
+        try:
+            await hass.config_entries.async_forward_entry_unload(entry, "sensor")
+            _LOGGER.info("Successfully removed sensor from the integration")
+        except ValueError:
+            pass
+
+    async def async_remove_config_entry_device(
+        hass, config_entry, device_entry
+    ) -> bool:
+        return True
+        """Remove a config entry from a device."""
 
     def _handle_event(self, event):
         """Domain specific event handler."""

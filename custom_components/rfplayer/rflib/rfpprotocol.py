@@ -142,7 +142,7 @@ class PacketHandling(ProtocolBase):
         """Process incoming packet dict and optionally call callback."""
         if self.packet_callback:
             # forward to callback
-            log.debug("forwarding packet: %s to %s", packet,self.packet_callback.__module__+"/"+self.packet_callback.__name__)
+            #log.debug("forwarding packet: %s to %s", packet,self.packet_callback.__module__+"/"+self.packet_callback.__name__)
             self.packet_callback(packet)
         else:
             log.debug("packet with no callback %s", packet)
@@ -179,6 +179,12 @@ class PacketHandling(ProtocolBase):
         else:
             self.send_raw_packet(f"ZIA++{protocol} {command}")
 
+    def send_raw_command(
+        self,
+        command: str,
+    ) -> None:
+        self.send_raw_packet(f"{command}")
+
 class CommandSerialization(PacketHandling):
     """Logic for ensuring asynchronous commands are sent in order."""
 
@@ -214,6 +220,17 @@ class CommandSerialization(PacketHandling):
         """Send command, wait for gateway to repond."""
         async with self._lock:
             self.send_command(protocol, command, device_address, device_id)
+            self._event.clear()
+            # await self._event.wait()
+        return True
+    
+    async def send_raw_command_ack(
+        self,
+        command: str,
+    ) -> bool:
+        """Send command, wait for gateway to repond."""
+        async with self._lock:
+            self.send_raw_command(command)
             self._event.clear()
             # await self._event.wait()
         return True
