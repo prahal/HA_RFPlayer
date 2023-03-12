@@ -140,8 +140,10 @@ def decode_packet(packet: str) -> list:
     data = cast(PacketType, {"node": PacketHeader.gateway.name})
 
     # Welcome messages directly send
+    #TODO : Manage ZIA-- frames
     if packet.startswith("ZIA--"):
         data["message"] = packet.replace("ZIA--", "")
+        log.debug("Packet : %s",packet)
         return [data]
 
     # Protocols

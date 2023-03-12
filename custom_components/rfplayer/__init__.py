@@ -3,6 +3,8 @@ import asyncio
 from collections import defaultdict
 import copy
 import logging
+import inspect
+
 
 import async_timeout
 from serial import SerialException
@@ -29,8 +31,11 @@ from homeassistant.helpers.dispatcher import (
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import (
+from .const import *
+"""
+(
     CONF_AUTOMATIC_ADD,
+    CONF_FORMAT,
     CONF_DEVICE_ADDRESS,
     CONF_RECONNECT_INTERVAL,
     CONF_ENTITY_TYPE,
@@ -54,6 +59,8 @@ from .const import (
     SIGNAL_HANDLE_EVENT,
     TEST_FRAME,
 )
+"""
+
 from .rflib.rfpprotocol import create_rfplayer_connection
 
 _LOGGER = logging.getLogger(__name__)
@@ -92,8 +99,14 @@ def identify_event_type(event):
 
 async def async_setup_entry(hass, entry):
     """Set up GCE RFPlayer from a config entry."""
+    
+    _LOGGER.debug("Rfplayer Set Entry %s", entry)
+    #_LOGGER.debug("Rfplayer Set Entry-Data %s", entry.data)
+    #_LOGGER.debug("Rfplayer Set Entry-Options %s", entry.options)
     config = entry.data
     options = entry.options
+
+    
 
     async def async_send_command(call):
         """Send Rfplayer command."""
@@ -153,6 +166,8 @@ async def async_setup_entry(hass, entry):
     hass.services.async_register(
         DOMAIN, SERVICE_TEST_FRAME, async_test_frame, schema=TEST_FRAME_SCHEMA
     )
+
+    
 
     @callback
     def event_callback(event):
@@ -224,22 +239,56 @@ async def async_setup_entry(hass, entry):
             _LOGGER.warning("Disconnected from Rfplayer, reconnecting")
             hass.async_create_task(connect())
 
+
     async def connect():
         """Set up connection and hook it into HA for reconnect/shutdown."""
         _LOGGER.info("Initiating Rfplayer connection")
+
+        ReceiverCommand="RECEIVER + *"
+        if options.get(CONF_RECEIVER_DISABLE,None)!=None :
+            ReceiverCommand+=" -"
+            for Receiver in options.get(CONF_RECEIVER_DISABLE) :
+                ReceiverCommand += " "+str(Receiver)
+
+        RepeaterCommand="REPEATER + *"
+        if options.get(CONF_REPEATER_DISABLE,None)!=None :
+            RepeaterCommand+=" -"
+            for Repeater in options.get(CONF_REPEATER_DISABLE) :
+                RepeaterCommand += " "+str(Repeater)
+
+        TraceCommand="TRACE - *"
+        if options.get(CONF_REPEATER_DISABLE,None)!=None :
+            TraceCommand+=" +"
+            for Trace in options.get(CONF_TRACE) :
+                TraceCommand += " "+str(Trace)
+
         connection = create_rfplayer_connection(
             port=config[CONF_DEVICE],
             event_callback=event_callback,
             disconnect_callback=reconnect,
             loop=hass.loop,
-            init_options={'START_COMMANDS':[
-                            "RECEIVER + *","SENSITIVITY L 0","SENSITIVITY H 0","SELECTIVITY L 0",
-                            "SELECTIVITY H 0","RFLINK 1","RFLINKTRIGGER L 0","RFLINKTRIGGER H 0",
-                            "LBT 16","FORMAT JSON","STATUS"
+            options={'START_COMMANDS':[
+                            ReceiverCommand,
+                            RepeaterCommand,
+                            TraceCommand,
+                            "SENSITIVITY L "+str(options.get(CONF_SENSITIVITY_L,0)),
+                            "SENSITIVITY H "+str(options.get(CONF_SENSITIVITY_H,0)),
+                            "SELECTIVITY L "+str(options.get(CONF_SELECTIVITY_L,0)),
+                            "SELECTIVITY H "+str(options.get(CONF_SELECTIVITY_H,0)),
+                            "RFLINK "+str(int(options.get(CONF_RFLINK,True) == True)),
+                            "RFLINKTRIGGER L "+str(options.get(CONF_RFLINKTRIGGER_L,0)),
+                            "RFLINKTRIGGER H "+str(options.get(CONF_RFLINKTRIGGER_H,0)),
+                            "DSPTRIGGER L "+str(options.get(CONF_DSPTRIGGER_L,0)),
+                            "DSPTRIGGER H "+str(options.get(CONF_DSPTRIGGER_H,0)),
+                            "LBT "+str(options.get(CONF_LBT,16)),
+                            "FREQ L "+str(options.get(CONF_FREQ_L,0)),
+                            "FREQ H "+str(options.get(CONF_FREQ_H,0)),
+                            "LEDACTIVITY "+str(int(options.get(CONF_LEDACTIVITY,True) == True)),
+                            "FORMAT "+str(options.get(CONF_FORMAT,"JSON")),
+                            "STATUS"
                         ]
             },
         )
-
         try:
             with async_timeout.timeout(CONNECTION_TIMEOUT):
                 transport, protocol = await connection
@@ -293,6 +342,11 @@ async def async_setup_entry(hass, entry):
 
     return True
 
+async def async_unload_entry(hass, entry):
+    """Unload a config entry."""
+
+async def async_remove_entry(hass, entry) -> None:
+    """Handle removal of an entry."""
 
 class RfplayerDevice(RestoreEntity):
     """Representation of a Rfplayer device.
@@ -377,6 +431,15 @@ class RfplayerDevice(RestoreEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device registry information for this entity."""
+        
+        _LOGGER.debug("-------Device Info-------:"+str(self.unique_id))
+        #_LOGGER.debug(self.unique_id)
+        #_LOGGER.debug(self.hass.data[DOMAIN])
+        """
+        _LOGGER.debug(self.platform)
+        _LOGGER.debug(self.protocol)
+        """
+
         return DeviceInfo(
             identifiers={
                 (
@@ -389,6 +452,7 @@ class RfplayerDevice(RestoreEntity):
             manufacturer="GCE",
             model="RFPlayer",
             name="RFPlayer",
+            sw_version=None
         )
 
     @property
@@ -400,6 +464,11 @@ class RfplayerDevice(RestoreEntity):
     def protocol(self):
         """Return value."""
         return self._attr_protocol
+    
+    @property
+    def ledactive(self):
+        """Return value."""
+        return "La led ext active"
 
     @callback
     def _availability_callback(self, availability):

@@ -2,7 +2,45 @@
 DOMAIN = "rfplayer"
 DATA_RFOBJECT = "rfobject"
 
-CONF_AUTOMATIC_ADD = "automatic_add"
+CONF_AUTOMATIC_ADD =    "automatic_add"
+
+CONF_FORMAT =           "conf_format"
+CONF_RECEIVER_DISABLE = "conf_receiver_disable"
+CONF_FREQ_H=            "conf_freq_h"
+CONF_FREQ_L=            "conf_freq_l"
+CONF_SELECTIVITY_H=     "conf_selectivity_h"
+CONF_SELECTIVITY_L=     "conf_selectivity_l"
+CONF_SENSITIVITY_H=     "conf_sensitivity_h"
+CONF_SENSITIVITY_L=     "conf_sensitivity_l"
+CONF_DSPTRIGGER_H=      "conf_dsptrigger_h"
+CONF_DSPTRIGGER_L=      "conf_dsptrigger_l"
+CONF_RFLINK=            "conf_rflink"
+CONF_RFLINKTRIGGER_H=   "conf_rflinktrigger_h"
+CONF_RFLINKTRIGGER_L=   "conf_rflinktrigger_l"
+CONF_LBT=               "conf_lbt"
+CONF_REPEATER_DISABLE=  "conf_repeater_disable"
+CONF_LEDACTIVITY=       "conf_ledactivity"
+CONF_TRACE=             "conf_trace"
+
+LIST_CONF_COMMANDS=[
+    {CONF_FORMAT:"FORMAT"},
+    {CONF_RECEIVER_DISABLE:"RECEIVER"},
+    {CONF_FREQ_H:"FREQ H"},
+    {CONF_FREQ_L:"FREQ L"},
+    {CONF_SELECTIVITY_H:"SELECTIVITY H"},
+    {CONF_SELECTIVITY_L:"SELECTIVITY L"},
+    {CONF_SENSITIVITY_H:"SENSITIVITY H"},
+    {CONF_SENSITIVITY_L:"SENSITIVITY L"},
+    {CONF_DSPTRIGGER_H:"DSPTRIGGER H"},
+    {CONF_DSPTRIGGER_L:"DSPTRIGGER L"},
+    {CONF_RFLINK:"RFLINK"},
+    {CONF_RFLINKTRIGGER_H:"RFLINKTRIGGER H"},
+    {CONF_RFLINKTRIGGER_L:"RFLINKTRIGGER L"},
+    {CONF_LBT:"LBT"},
+    {CONF_REPEATER_DISABLE:"REPEATER"},
+    {CONF_LEDACTIVITY:"LEDACTIVITY"},
+    {CONF_TRACE:"TRACE"},
+]
 
 CONF_RECONNECT_INTERVAL = "reconnect_interval"
 
