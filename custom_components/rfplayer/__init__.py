@@ -305,8 +305,6 @@ async def async_setup_entry(hass, entry):
                             "FREQ H "+str(options.get(CONF_FREQ_H,0)),
                             "LEDACTIVITY "+str(int(options.get(CONF_LEDACTIVITY,True) == True)),
                             "RFLINK "+str(int(options.get(CONF_RFLINK,True) == True)),
-                            "RFLINK H "+str(int(options.get(CONF_RFLINK,True) == True)),
-                            "RFLINK L "+str(int(options.get(CONF_RFLINK,True) == True)),
                             "STATUS JSON"
                         ]
             },
