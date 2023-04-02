@@ -24,12 +24,16 @@ from homeassistant.const import (
 from homeassistant.core import CoreState, callback
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.device_registry import async_get_registry
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
     async_dispatcher_send,
 )
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.restore_state import RestoreEntity
+
+from homeassistant import components
+
 
 from .const import *
 """
@@ -87,6 +91,12 @@ SEND_RAW_COMMAND_SCHEMA = vol.Schema(
 TEST_FRAME_SCHEMA = vol.Schema(
     {
         vol.Required(TEST_FRAME): cv.string,
+    }
+)
+
+REMOVE_ENTITY_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_ID): cv.entity_id,
     }
 )
 
@@ -174,6 +184,42 @@ async def async_setup_entry(hass, entry):
             call.data['frame']
         )
 
+    async def async_remove_entity(call):
+        #TODO:Trouver comment supprimer une entité
+        """Remove an entity."""
+        _LOGGER.debug("Removing entity %s",call.data[CONF_ID])
+        ThisEntries=hass.config_entries.async_entries()
+        _LOGGER.debug("Entries %s",str(ThisEntries))
+        ThisEntry=hass.config_entries.async_get_entry(call.data[CONF_ID])
+        _LOGGER.debug("Entity = %s",ThisEntry) #[CONF_DEVICES][call.data[CONF_ID]]
+
+        for entry in ThisEntries:
+            if entry.domain == DOMAIN :
+                _LOGGER.debug("-----------------------") 
+                _LOGGER.debug("Entry item = %s",entry) 
+                for attr in dir(entry):
+                    if attr[0]!="_" :
+                        try:
+                            attribval=getattr(entry, attr)
+                        except:
+                            attribval="N/A"
+                        _LOGGER.debug("entry.%s = %s" ,attr,attribval)
+
+        #Manipuler entry.options et entry.data pour effectuer le pop
+        #Appliquer un flag pour qu'il ne soit pas recréé au boot suivant et désactiver
+        
+        try:
+            await hass.config_entries.async_unload(call.data[CONF_ID])
+            await hass.config_entries.async_remove(call.data[CONF_ID])
+        except Exception as err:
+            _LOGGER.debug(Exception,err)
+        """
+        hass.data[DOMAIN][RFPLAYER_PROTOCOL].handle_raw_packet(
+            call.data['frame']
+        )
+        """
+    
+
     hass.services.async_register(
         DOMAIN, SERVICE_SEND_COMMAND, async_send_command, schema=SEND_COMMAND_SCHEMA
     )
@@ -184,6 +230,10 @@ async def async_setup_entry(hass, entry):
 
     hass.services.async_register(
         DOMAIN, SERVICE_TEST_FRAME, async_test_frame, schema=TEST_FRAME_SCHEMA
+    )
+
+    hass.services.async_register(
+        DOMAIN, SERVICE_REMOVE_ENTITY, async_remove_entity, schema=REMOVE_ENTITY_SCHEMA
     )
 
     
@@ -292,21 +342,21 @@ async def async_setup_entry(hass, entry):
                             ReceiverCommand,
                             RepeaterCommand,
                             TraceCommand,
-                            "SENSITIVITY L "+str(options.get(CONF_SENSITIVITY_L,0)),
-                            "SENSITIVITY H "+str(options.get(CONF_SENSITIVITY_H,0)),
-                            "SELECTIVITY L "+str(options.get(CONF_SELECTIVITY_L,0)),
-                            "SELECTIVITY H "+str(options.get(CONF_SELECTIVITY_H,0)),
-                            "RFLINKTRIGGER L "+str(options.get(CONF_RFLINKTRIGGER_L,0)),
-                            "RFLINKTRIGGER H "+str(options.get(CONF_RFLINKTRIGGER_H,0)),
-                            "DSPTRIGGER L "+str(options.get(CONF_DSPTRIGGER_L,0)),
-                            "DSPTRIGGER H "+str(options.get(CONF_DSPTRIGGER_H,0)),
-                            "LBT "+str(options.get(CONF_LBT,16)),
                             "FREQ L "+str(options.get(CONF_FREQ_L,0)),
                             "FREQ H "+str(options.get(CONF_FREQ_H,0)),
-                            "LEDACTIVITY "+str(int(options.get(CONF_LEDACTIVITY,True) == True)),
+                            "SELECTIVITY L "+str(options.get(CONF_SELECTIVITY_L,0)),
+                            "SELECTIVITY H "+str(options.get(CONF_SELECTIVITY_H,0)),
+                            "SENSITIVITY L "+str(options.get(CONF_SENSITIVITY_L,0)),
+                            "SENSITIVITY H "+str(options.get(CONF_SENSITIVITY_H,0)),
+                            "DSPTRIGGER L "+str(options.get(CONF_DSPTRIGGER_L,0)),
+                            "DSPTRIGGER H "+str(options.get(CONF_DSPTRIGGER_H,0)),
                             "RFLINK "+str(int(options.get(CONF_RFLINK,True) == True)),
-                            "RFLINK H "+str(int(options.get(CONF_RFLINK,True) == True)),
-                            "RFLINK L "+str(int(options.get(CONF_RFLINK,True) == True)),
+                            "RFLINKTRIGGER L "+str(options.get(CONF_RFLINKTRIGGER_L,0)),
+                            "RFLINKTRIGGER H "+str(options.get(CONF_RFLINKTRIGGER_H,0)),
+                            "LBT "+str(options.get(CONF_LBT,16)),
+                            #TODO:SETMAC à implémenter
+                            "LEDACTIVITY "+str(int(options.get(CONF_LEDACTIVITY,True) == True)),
+                            
                             "STATUS JSON"
                         ]
             },
@@ -360,14 +410,19 @@ async def async_setup_entry(hass, entry):
 
     async_dispatcher_connect(hass, SIGNAL_EVENT, event_callback)
 
-    hass.config_entries.async_setup_platforms(entry, PLATFORMS)
+    #hass.config_entries.async_setup_platforms(entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
 async def async_unload_entry(hass, entry):
     """Unload a config entry."""
-    _LOGGER.debug("Unloading %s",str(entry))
-    await hass.config_entries.async_unload_platforms(entry, "sensor")
+    _LOGGER.debug("Unloading - Phase two : %s",str(entry))
+    await hass.config_entries.async_forward_entry_unload(entry, "sensor")
+    await hass.config_entries.async_forward_entry_unload(entry, "cover")
+    await hass.config_entries.async_forward_entry_unload(entry, "command")
+    hass
+    #await hass.config_entries.async_unload_platforms(entry, "sensor")
     return True
     
 

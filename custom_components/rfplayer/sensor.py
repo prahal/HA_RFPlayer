@@ -30,8 +30,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     config = entry.data
     options = entry.options
-    #_LOGGER.debug("config : %s",str(config))
-    #_LOGGER.debug("config : %s",str(options))
+    _LOGGER.debug("config : %s",str(config))
+    _LOGGER.debug("options : %s",str(options))
 
     # add jamming entity
     #async_add_entities([RfplayerJammingSensor()])
@@ -54,7 +54,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         items_to_delete=[]
         for device_id, device_info in config[CONF_DEVICES].items():
             if EVENT_KEY_SENSOR in device_info:
-                if((device_info.get("protocol")!=None) and (device_info.get("platform")=="sensor")):
+                if((device_info.get("protocol")!=None) and (device_info.get("platform")=="sensor") and (device_info.get("platform")=="sensor")):
                     await add_new_device(device_info)
                 else :
                     _LOGGER.warning("Sensor entity not created %s - %s", device_id, device_info)
@@ -68,6 +68,10 @@ async def async_setup_entry(hass, entry, async_add_entities):
     if options.get(CONF_AUTOMATIC_ADD, config[CONF_AUTOMATIC_ADD]):
         hass.data[DOMAIN][DATA_DEVICE_REGISTER][EVENT_KEY_SENSOR] = add_new_device
 
+async def async_remove_entry(hass, entry) -> None:
+    """Handle removal of an entry."""
+    _LOGGER.debug("Removing %s",str(entry))
+    """Handle removal of an entry."""
 
 class RfplayerSensor(RfplayerDevice):
     """Representation of a Rfplayer sensor."""
