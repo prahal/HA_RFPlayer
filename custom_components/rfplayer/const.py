@@ -58,6 +58,7 @@ CONF_FIRE_EVENT = "fire_event"
 CONF_IGNORE_DEVICES = "ignore_devices"
 CONF_SIGNAL_REPETITIONS = "signal_repetitions"
 CONF_ENTITY_TYPE = "entity_type"
+CONF_ENTITY_TODELETE = "entity_todelete"
 CONF_ID = "id"
 CONF_PLATFORM = "platform"
 

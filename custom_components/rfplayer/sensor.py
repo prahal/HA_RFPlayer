@@ -30,8 +30,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     config = entry.data
     options = entry.options
-    _LOGGER.debug("config : %s",str(config))
-    _LOGGER.debug("options : %s",str(options))
+    #_LOGGER.debug("config : %s",str(config))
+    #_LOGGER.debug("options : %s",str(options))
 
     # add jamming entity
     #async_add_entities([RfplayerJammingSensor()])
@@ -90,6 +90,14 @@ class RfplayerSensor(RfplayerDevice):
         self._device_id = device_id
         self._attr_name = name
         self._attr_unit_of_measurement = unit_of_measurement
+
+
+        if(("sysstatus" in protocol)or("SYSSTATUS" in protocol)):
+            self._attr_entity_category = EntityCategory.DIAGNOSTIC
+            _LOGGER.info("Diagnostic ID : %s",device_id)
+        else:
+            _LOGGER.info("Check ID : %s",device_id)
+        
         super().__init__(
             protocol, device_id=device_id, initial_event=initial_event, name=name
         )

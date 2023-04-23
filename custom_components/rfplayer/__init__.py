@@ -20,6 +20,7 @@ from homeassistant.const import (
     CONF_DEVICES,
     CONF_PROTOCOL,
     EVENT_HOMEASSISTANT_STOP,
+    EntityCategory
 )
 from homeassistant.core import CoreState, callback
 import homeassistant.helpers.config_validation as cv
@@ -79,6 +80,7 @@ SEND_COMMAND_SCHEMA = vol.Schema(
         vol.Optional(CONF_DEVICE_ID): cv.string,
         vol.Required(CONF_AUTOMATIC_ADD, default=False): cv.boolean,
         vol.Optional(CONF_ENTITY_TYPE): cv.string,
+        vol.Optional(CONF_ENTITY_TODELETE): cv.string,
     }
 )
 
@@ -193,6 +195,7 @@ async def async_setup_entry(hass, entry):
         ThisEntry=hass.config_entries.async_get_entry(call.data[CONF_ID])
         _LOGGER.debug("Entity = %s",ThisEntry) #[CONF_DEVICES][call.data[CONF_ID]]
 
+        """
         for entry in ThisEntries:
             if entry.domain == DOMAIN :
                 _LOGGER.debug("-----------------------") 
@@ -204,15 +207,43 @@ async def async_setup_entry(hass, entry):
                         except:
                             attribval="N/A"
                         _LOGGER.debug("entry.%s = %s" ,attr,attribval)
+        """
+        entitydomain=call.data[CONF_ID].split(".")[0]
 
+        _LOGGER.debug(hass.data[DOMAIN])
+        #_LOGGER.debug(hass.options[DOMAIN])
+        _LOGGER.debug(hass.data[DOMAIN][DATA_ENTITY_LOOKUP][entitydomain])
+        
+        entrytodelete=""
+        for entity,id in hass.data[DOMAIN][DATA_ENTITY_LOOKUP][entitydomain].items() :
+            if id==call.data[CONF_ID]:
+                entrytodelete=entity
+        
+        if entrytodelete!="":
+            _LOGGER.debug("Trying to Detele %s from %s",entrytodelete,entitydomain)
+            hass.data[DOMAIN][DATA_ENTITY_LOOKUP][entitydomain].pop(entrytodelete)
+
+        #await super().async_will_remove_from_hass()
+        """
+        device_registry = await async_get_registry(hass)
+        device = device_registry.async_get_device(
+            (DOMAIN, hass.data[DOMAIN]
+             [CONF_DEVICE] + "_" + self._attr_unique_id)
+        )
+        if device:
+            device_registry.async_remove_device(device)
+        """
+        
         #Manipuler entry.options et entry.data pour effectuer le pop
         #Appliquer un flag pour qu'il ne soit pas recréé au boot suivant et désactiver
         
+        """
         try:
             await hass.config_entries.async_unload(call.data[CONF_ID])
             await hass.config_entries.async_remove(call.data[CONF_ID])
         except Exception as err:
             _LOGGER.debug(Exception,err)
+        """
         """
         hass.data[DOMAIN][RFPLAYER_PROTOCOL].handle_raw_packet(
             call.data['frame']
@@ -276,15 +307,18 @@ async def async_setup_entry(hass, entry):
                 _LOGGER.debug("event_type: %s",str(event_type))
                 _LOGGER.debug("event_id: %s",str(event_id))
                 _LOGGER.debug("event: %s",str(event))
-                _LOGGER.debug(str(hass.data[DOMAIN][DATA_DEVICE_REGISTER]))
-                _LOGGER.debug(str(hass.data[DOMAIN][DATA_DEVICE_REGISTER][event_type]))
+                #_LOGGER.debug(str(hass.data[DOMAIN][DATA_DEVICE_REGISTER]))
+                #_LOGGER.debug(str(hass.data[DOMAIN][DATA_DEVICE_REGISTER][event_type]))
                 
                 hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id] = event
                 _add_device_to_base_config(event, event_id)
-                _LOGGER.debug("calling: %s","hass.data["+DOMAIN+"]["+DATA_DEVICE_REGISTER+"]["+event_type+"]")
-                hass.async_create_task(
-                    hass.data[DOMAIN][DATA_DEVICE_REGISTER][event_type](event)
-                )
+                #_LOGGER.debug("calling: %s","hass.data["+DOMAIN+"]["+DATA_DEVICE_REGISTER+"]["+event_type+"]")
+                if inspect.isfunction(hass.data[DOMAIN][DATA_DEVICE_REGISTER][event_type]):
+                    hass.async_create_task(
+                        hass.data[DOMAIN][DATA_DEVICE_REGISTER][event_type](event)
+                    )
+                else :
+                    _LOGGER.debug("Impossible to add device - No functions mapped for %s",event_type)
             else:
                 _LOGGER.debug("device_id not known and automatic add disabled")
 
@@ -350,9 +384,9 @@ async def async_setup_entry(hass, entry):
                             "SENSITIVITY H "+str(options.get(CONF_SENSITIVITY_H,0)),
                             "DSPTRIGGER L "+str(options.get(CONF_DSPTRIGGER_L,0)),
                             "DSPTRIGGER H "+str(options.get(CONF_DSPTRIGGER_H,0)),
-                            "RFLINK "+str(int(options.get(CONF_RFLINK,True) == True)),
                             "RFLINKTRIGGER L "+str(options.get(CONF_RFLINKTRIGGER_L,0)),
                             "RFLINKTRIGGER H "+str(options.get(CONF_RFLINKTRIGGER_H,0)),
+                            "RFLINK "+str(int(options.get(CONF_RFLINK,True) == True)),
                             "LBT "+str(options.get(CONF_LBT,16)),
                             #TODO:SETMAC à implémenter
                             "LEDACTIVITY "+str(int(options.get(CONF_LEDACTIVITY,True) == True)),
@@ -406,11 +440,19 @@ async def async_setup_entry(hass, entry):
 
         _LOGGER.info("Connected to Rfplayer")
 
-    hass.async_create_task(connect())
+    await connect()
+    #if not await hass.data[DOMAIN][RFPLAYER_PROTOCOL].send_command_ack(
+   
 
     async_dispatcher_connect(hass, SIGNAL_EVENT, event_callback)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    _LOGGER.debug(str(hass.data[DOMAIN][RFPLAYER_PROTOCOL]))
+    hass.data[DOMAIN][RFPLAYER_PROTOCOL].init_commands()
+    
+    
+
+    
 
     return True
 
@@ -470,6 +512,7 @@ class RfplayerDevice(RestoreEntity):
         self._event = None
         self._state: bool = None
         self._attr_assumed_state = True
+        
         if name is not None:
             self._attr_name = name
             self._attr_unique_id = slugify(f"{protocol}_{name}")
@@ -491,6 +534,7 @@ class RfplayerDevice(RestoreEntity):
         await rfplayer.han(
             frame=frame,
         )
+        
 
     @callback
     def handle_event_callback(self, event):

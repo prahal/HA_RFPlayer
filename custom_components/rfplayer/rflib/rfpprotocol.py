@@ -48,6 +48,16 @@ class ProtocolBase(asyncio.Protocol):
     def connection_made(self, transport: asyncio.BaseTransport) -> None:
         """Just logging for now."""
         self.transport = transport
+        #self.send_raw_packet("ZIA++HELLO")
+        #for command in self.options.get('START_COMMANDS',[]):
+        #    self.send_raw_packet("ZIA++"+command)
+        
+        
+        #log.debug("initialized")
+    
+    def init_commands(self) -> None:
+        """Just logging for now."""
+        #self.transport = transport
         self.send_raw_packet("ZIA++HELLO")
         for command in self.options.get('START_COMMANDS',[]):
             self.send_raw_packet("ZIA++"+command)

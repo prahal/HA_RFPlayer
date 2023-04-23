@@ -142,6 +142,50 @@ def systemStatus_decode(data:list,message:list,node) -> list:
 
     return decoded_items
 
+#radioStatus
+def radioStatus_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode radioStatus")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoded_items["elements"]={}
+    Bands=message["radioStatus"]["band"]
+    BandCounter=0
+    for Infos in Bands:
+        BandCounter+=1
+        if(BandCounter==1):
+            Band="433"
+        else:
+            Band="866"
+        for info in Infos.get("i") :
+            if info.get("n"):
+                name=Band+"-"+info.get("n")
+                decoded_items["elements"][name]={
+                    "id":name,
+                    "protocol":"SYSSTATUS",
+                    "platform":"sensor",
+                    "sensor":info.get("v")
+                    
+                }
+                if info.get("unit",None) != None :
+                    decoded_items["elements"][name]["sensor"+"_unit"]=info.get("unit")
+            
+            subelements={"transmitter":["available"],"receiver":["available","enabled"],"repeater":["available","enabled"]}
+            for subelement,details in subelements.items():
+                if info.get(subelement):
+                    for detail in details:
+                        if info.get(subelement).get(detail):
+                            name=Band+"-"+subelement+"-"+detail
+                            decoded_items["elements"][name]={
+                                "id":name,
+                                "protocol":"SYSSTATUS",
+                                "platform":"sensor",
+                                "sensor":info.get(subelement).get(detail).get("p")
+                        }
+
+
+    return decoded_items
+
 #X10 : Infotypes : 0,1
 def X10_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode X10")
