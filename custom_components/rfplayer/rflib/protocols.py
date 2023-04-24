@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, Generator, cast
 import json
 
 #Debogage des protocoles
-protocols_debug=True
+protocols_debug=False
 
 PacketType = Dict[str, Any]
 

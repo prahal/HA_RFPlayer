@@ -286,9 +286,9 @@ class EventHandling(PacketHandling):
             if self.ignore_event(event["id"]):
                 log.debug("ignoring event with id: %s", event)
                 continue
-            log.debug("got event: %s", event)
+            #log.debug("got event: %s", event)
             if self.event_callback:
-                log.debug("forwarding event to: %s",self.event_callback.__module__+"/"+self.event_callback.__name__)
+                #log.debug("forwarding event to: %s",self.event_callback.__module__+"/"+self.event_callback.__name__)
                 self.event_callback(event)
             else:
                 log.debug("Event handled locally")

@@ -57,14 +57,14 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    _LOGGER.debug("Add cover entity - hass : %s", str(hass))
-    _LOGGER.debug("Add cover entity - entry : %s", str(entry))
-    _LOGGER.debug("Add cover entity - async_add_entities : %s", str(async_add_entities))
+    #_LOGGER.debug("Add cover entity - hass : %s", str(hass))
+    #_LOGGER.debug("Add cover entity - entry : %s", str(entry))
+    #_LOGGER.debug("Add cover entity - async_add_entities : %s", str(async_add_entities))
     """Set up the Rfplayer platform."""
     config = entry.data
     options = entry.options
-    _LOGGER.debug("config : %s",str(config))
-    _LOGGER.debug("options : %s",str(options))
+    #_LOGGER.debug("config : %s",str(config))
+    #_LOGGER.debug("options : %s",str(options))
 
     platform = entity_platform.current_platform.get()
     

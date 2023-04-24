@@ -140,7 +140,7 @@ def decode_packet(packet: str) -> list:
 
     data = cast(PacketType, {"node": PacketHeader.gateway.name})
 
-    log.debug("Packet : %s",packet)
+    #log.debug("Packet : %s",packet)
     match packet[:5]:
         case "ZIA--":
             # Welcome messages and status directly send
@@ -245,7 +245,7 @@ def deserialize_packet_id(packet_id: str) -> Dict[str, str]:
 
 def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
     platform=None
-    log.debug("packet events:%s", str(packet))
+    #log.debug("packet events:%s", str(packet))
     """Handle packet events."""
     field_abbrev = {
         v: k
@@ -267,7 +267,7 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
         if f == "forceid" :
             forceid=v
     for sensor, value in events.items():
-        log.debug("packet_events, sensor:%s,value:%s", sensor, value)
+        #log.debug("packet_events, sensor:%s,value:%s", sensor, value)
         unit = packet.get(sensor + "_unit", None)
         
         if forceid==None:

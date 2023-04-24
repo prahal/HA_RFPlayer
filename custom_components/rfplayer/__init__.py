@@ -210,9 +210,9 @@ async def async_setup_entry(hass, entry):
         """
         entitydomain=call.data[CONF_ID].split(".")[0]
 
-        _LOGGER.debug(hass.data[DOMAIN])
+        #_LOGGER.debug(hass.data[DOMAIN])
         #_LOGGER.debug(hass.options[DOMAIN])
-        _LOGGER.debug(hass.data[DOMAIN][DATA_ENTITY_LOOKUP][entitydomain])
+        #_LOGGER.debug(hass.data[DOMAIN][DATA_ENTITY_LOOKUP][entitydomain])
         
         entrytodelete=""
         for entity,id in hass.data[DOMAIN][DATA_ENTITY_LOOKUP][entitydomain].items() :
@@ -295,8 +295,8 @@ async def async_setup_entry(hass, entry):
 
         if entity_id:
             # Propagate event to every entity matching the device id
-            _LOGGER.debug("passing event to %s", entity_id)
-            _LOGGER.debug("Register available : %s",str(hass.data[DOMAIN][DATA_DEVICE_REGISTER]))
+            #_LOGGER.debug("passing event to %s", entity_id)
+            #_LOGGER.debug("Register available : %s",str(hass.data[DOMAIN][DATA_DEVICE_REGISTER]))
             async_dispatcher_send(
                 hass, SIGNAL_HANDLE_EVENT.format(entity_id), event)
         else:
@@ -447,7 +447,7 @@ async def async_setup_entry(hass, entry):
     async_dispatcher_connect(hass, SIGNAL_EVENT, event_callback)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    _LOGGER.debug(str(hass.data[DOMAIN][RFPLAYER_PROTOCOL]))
+    #_LOGGER.debug(str(hass.data[DOMAIN][RFPLAYER_PROTOCOL]))
     hass.data[DOMAIN][RFPLAYER_PROTOCOL].init_commands()
     
     

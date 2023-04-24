@@ -94,9 +94,9 @@ class RfplayerSensor(RfplayerDevice):
 
         if(("sysstatus" in protocol)or("SYSSTATUS" in protocol)):
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
-            _LOGGER.info("Diagnostic ID : %s",device_id)
-        else:
-            _LOGGER.info("Check ID : %s",device_id)
+        #    _LOGGER.info("Diagnostic ID : %s",device_id)
+        #else:
+        #    _LOGGER.info("Check ID : %s",device_id)
         
         super().__init__(
             protocol, device_id=device_id, initial_event=initial_event, name=name
