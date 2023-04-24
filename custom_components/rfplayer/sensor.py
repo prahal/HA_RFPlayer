@@ -94,7 +94,7 @@ class RfplayerSensor(RfplayerDevice):
 
         if(("sysstatus" in protocol)or("SYSSTATUS" in protocol)):
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
-        #    _LOGGER.info("Diagnostic ID : %s",device_id)
+        _LOGGER.info("RfPlayer Sensor ID : %s",device_id)
         #else:
         #    _LOGGER.info("Check ID : %s",device_id)
         
@@ -150,35 +150,3 @@ class RfplayerSensor(RfplayerDevice):
         """Return value."""
         return self._state
 
-class RfplayerJammingSensor(RfplayerDevice):
-    """Representation of a Jamming Rfplayer sensor."""
-
-    def __init__(self):
-        """Handle sensor specific args and super init."""
-        self._attr_entity_category = EntityCategory.DIAGNOSTIC
-        super().__init__(
-            "JAMMING", device_id=0, name="Jamming detection"
-        )
-
-    def _handle_event(self, event):
-        """Domain specific event handler."""
-        self._state = event["value"]
-
-    @property
-    def state(self):
-        """Return value."""
-        return self._state
-
-    async def async_will_remove_from_hass(self):
-        """Clean when entity removed."""
-        _LOGGER.debug("Remove sensor entity %s", self._attr_unique_id)
-        """
-        await super().async_will_remove_from_hass()
-        device_registry = await async_get_registry(self.hass)
-        device = device_registry.async_get_device(
-            (DOMAIN, self.hass.data[DOMAIN]
-             [CONF_DEVICE] + "_" + self._attr_unique_id)
-        )
-        if device:
-            device_registry.async_remove_device(device)
-        """
