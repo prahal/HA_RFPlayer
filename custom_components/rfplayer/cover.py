@@ -136,6 +136,11 @@ async def async_setup_entry(hass, entry, async_add_entities):
         hass.data[DOMAIN][DATA_DEVICE_REGISTER][EVENT_KEY_COVER] = add_new_device
 
 
+async def async_remove_entry(hass, entry) -> None:
+    """Handle removal of an entry."""
+    _LOGGER.debug("Removing %s",str(entry))
+    """Handle removal of an entry."""
+
 class RfplayerCover(RfplayerDevice, CoverEntity):
     """Representation of a Rfplayer cover."""
 
@@ -155,8 +160,34 @@ class RfplayerCover(RfplayerDevice, CoverEntity):
                 self._state = old_state.state
 
     async def async_will_remove_from_hass(self):
-        await super().async_will_remove_from_hass()
-    
+        #await super().async_will_remove_from_hass()
+        async def async_will_remove_from_hass(self):
+            """Clean up after entity before removal."""
+            _LOGGER.info("async_will_remove_from_hass ")
+            self._data.clear_session()
+
+    async def async_unload_entry(hass, entry):
+        """Unload a config entry."""
+        _LOGGER.debug("Unloading %s",str(entry))
+        await hass.config_entries.async_unload_platforms(entry, "cover")
+        return True
+
+
+    async def async_remove_entry(hass, entry) -> None:
+        """Handle removal of an entry."""
+        _LOGGER.debug("Removing %s",str(entry))
+        try:
+            await hass.config_entries.async_forward_entry_unload(entry, "cover")
+            _LOGGER.info("Successfully removed cover from the integration")
+        except ValueError:
+            pass
+
+    async def async_remove_config_entry_device(
+        hass, config_entry, device_entry
+    ) -> bool:
+        return True
+        """Remove a config entry from a device."""
+
     @callback
     def _handle_event(self, event):
         _LOGGER.debug("Event : %s", str(event))
